@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+
+    <group  >
+        <item
+            android:title="lalalal">
+            <menu>
+                <item
+                    android:id="@+id/id_new_menuitem"
+                    android:icon="@drawable/ic_add_white_48dp"
+                    android:title="1"
+                    android:checkable="true" />
+                <item
+                    android:id="@+id/id_picture_menuitem"
+                    android:icon="@drawable/ic_add_white_48dp"
+                    android:title="2"
+                    android:checkable="true"/>
+                <item
+                    android:id="@+id/id_video_menuitem"
+                    android:icon="@drawable/ic_add_white_48dp"
+                    android:title="3"
+                    android:checkable="true"/>
+                <item
+                    android:id="@+id/id_music_menuitem"
+                    android:icon="@drawable/ic_add_white_48dp"
+                    android:title="阿狸音乐"
+                    android:checkable="true"/>
+            </menu>
+            </item>
+       </group>
+
+</menu>

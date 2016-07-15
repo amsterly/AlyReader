@@ -62,7 +62,7 @@ public class PlayerDiscView extends RelativeLayout {
     private static final float X_FRACTION = 184.0f / 212.0f;
     private static final float Y_FRACTION = 25.0f / 259.0f;
 
-    private boolean isPlaying = true;
+    private boolean isPlaying = false;
 
     private Context mContext;
 
@@ -155,10 +155,10 @@ public class PlayerDiscView extends RelativeLayout {
         reverseDiscAnimator();
     }
 
-    public void resetNeedleAngle() {
-        startNeedleAnimator();
-        isPlaying = false;
-    }
+//    public void resetNeedleAngle() {
+//        startNeedleAnimator();
+//        isPlaying = false;
+//    }
 
     private void startNeedleAnimator() {
         if (isPlaying) {

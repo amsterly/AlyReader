@@ -14,6 +14,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,13 +24,20 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.google.gson.Gson;
 import com.zhy.android.percent.support.PercentRelativeLayout;
+import com.zhy.http.okhttp.OkHttpUtils;
+import com.zhy.http.okhttp.callback.StringCallback;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import aly.com.alyreader.R;
+import aly.com.alyreader.bean.MusicBean;
 import aly.com.alyreader.bean.MusicsListEntity;
 import aly.com.alyreader.bean.ResponseMusicsListentity;
 import aly.com.alyreader.blur.FastBlur;
@@ -44,6 +52,8 @@ import aly.com.alyreader.view.MusicsView;
 import aly.com.alyreader.widgets.PlayerDiscView;
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import okhttp3.Call;
+import okhttp3.Request;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -58,6 +68,7 @@ public class MusicFragment extends Fragment implements MusicsView {
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
+    private static final String TAG = "MusicFragment";
 
     @Bind(R.id.musics_player_background)
     ImageView musicsPlayerBackground;
@@ -177,6 +188,7 @@ public class MusicFragment extends Fragment implements MusicsView {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        Log.i(TAG, "onActivityCreated: ");
         mBundleBroadCast = new PlayBundleBroadCast();
         IntentFilter bundleFilter = new IntentFilter();
         bundleFilter.addAction(Constants.ACTION_MUSIC_BUNDLE_BROADCAST);
@@ -218,7 +230,7 @@ public class MusicFragment extends Fragment implements MusicsView {
 //        mBackgroundImage.setImageBitmap(bitmap);
         mMusicsPresenter = new MusicsPresenterImpl(mContext, this
         );
-        mPlayerDiscView.resetNeedleAngle();
+//        mPlayerDiscView.resetNeedleAngle();
         mPlayerDiscView.loadAlbumCover(R.drawable.aly_default);
         musicsPlayerPlayCtrlBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -228,6 +240,7 @@ public class MusicFragment extends Fragment implements MusicsView {
                 } else {
                     mMusicsPresenter.onRePlay();
                 }
+//                playDefaultMusic();
             }
         });
 
@@ -244,6 +257,7 @@ public class MusicFragment extends Fragment implements MusicsView {
                 mMusicsPresenter.onPrevClick();
             }
         });
+        mMusicsPresenter.loadListData(TAG_LOG, mMusicsCollectId, Constants.EVENT_REFRESH_DATA);
     }
     private void blur(Bitmap bkg, View view) {
         long startMs = System.currentTimeMillis();
@@ -286,19 +300,15 @@ public class MusicFragment extends Fragment implements MusicsView {
 //        }
     }
 
-    private void playDefaultMusic()
-    {
-        mPlayListData = new ArrayList<MusicsListEntity>();
-        Uri uri = Uri.parse("android.resource://aly.com.alyreader/raw/alert.wav");
-        MusicsListEntity musicsListEntity=new MusicsListEntity();
-        musicsListEntity.setUrl(uri.toString());
-        mPlayListData.add(musicsListEntity);
-        if(mPlayListData!=null)
-        {
-            MusicPlayService.refreshMusicList(mPlayListData);
-//            mMusicsPresenter.onStartPlay();
-        }
-    }
+
+
+//        @Override
+//        public void inProgress(float progress)
+//        {
+//            Log.e("ChatActivity", "inProgress:" + progress);
+////            mProgressBar.setProgress((int) (100 * progress));
+//        }
+
 
 
     @Override
@@ -320,13 +330,13 @@ public class MusicFragment extends Fragment implements MusicsView {
 
     @Override
     public void addMoreMusicsList(ResponseMusicsListentity data) {
-//        if (null != data) {
-//            mPlayListData = data.getSong();
-//            if (null != mPlayListData && !mPlayListData.isEmpty()) {
-//                MusicPlayService.refreshMusicList(mPlayListData);
-//                mContext.sendBroadcast(new Intent(MusicPlayState.ACTION_MUSIC_NEXT));
-//            }
-//        }
+        if (null != data) {
+            mPlayListData = data.getSong();
+            if (null != mPlayListData && !mPlayListData.isEmpty()) {
+                MusicPlayService.refreshMusicList(mPlayListData);
+                mContext.sendBroadcast(new Intent(MusicPlayState.ACTION_MUSIC_NEXT));
+            }
+        }
     }
 
     @Override
@@ -340,6 +350,7 @@ public class MusicFragment extends Fragment implements MusicsView {
     @Override
     public void startPlayMusic() {
         isPlaying = true;
+        mPlayerDiscView.startPlay();
         musicsPlayerPlayCtrlBtn.setImageResource(R.drawable.btn_pause_selector);
         mContext.sendBroadcast(new Intent(MusicPlayState.ACTION_MUSIC_PLAY));
     }

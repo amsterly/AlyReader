@@ -24,6 +24,7 @@ import android.content.IntentFilter;
 import android.os.IBinder;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 
 
 import org.greenrobot.eventbus.EventBus;
@@ -37,6 +38,7 @@ import aly.com.alyreader.eventbus.EventCenter;
 
 public class MusicPlayService extends Service {
 
+    private static final String TAG = "MusicPlayService";
     private static MusicPlayer mPlayer = null;
     private PlayBroadCastReceiver mBroadCastReceiver = null;
     private PhoneCallReceiver mPhoneCallReceiver = null;
@@ -50,8 +52,10 @@ public class MusicPlayService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        Log.i(TAG, "onCreate: ");
         mPlayer = new MusicPlayer(this);
-
+        if(mPlayer!=null)
+        Log.i(TAG, "onCreate: mPlayer!=null");
         mBroadCastReceiver = new PlayBroadCastReceiver();
 
         IntentFilter filter = new IntentFilter();

@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Random;
 
 import aly.com.alyreader.bean.MusicsListEntity;
+import aly.com.alyreader.bean.MusicPageInfo;
 import aly.com.alyreader.common.Constants;
 
 public class MusicPlayer implements OnCompletionListener, OnErrorListener, OnBufferingUpdateListener, OnPreparedListener {
@@ -247,6 +248,7 @@ public class MusicPlayer implements OnCompletionListener, OnErrorListener, OnBuf
         mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
 
         String dataSource = mMusicList.get(mCurPlayIndex).getUrl();
+
         try {
             mMediaPlayer.setDataSource(dataSource);
             mMediaPlayer.prepareAsync();

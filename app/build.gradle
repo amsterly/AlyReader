@@ -46,4 +46,6 @@ dependencies {
     compile 'com.google.code.gson:gson:2.2.4'
     compile 'com.squareup.okhttp:okhttp:2.4.0'
     compile project(':okhttputils')
+    //    compile 'com.github.zzz40500:AndroidSweetSheet:1.1.0'
+    compile project(':sweetsheet')
 }

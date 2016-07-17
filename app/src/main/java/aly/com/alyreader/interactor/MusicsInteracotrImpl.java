@@ -17,27 +17,23 @@
 package aly.com.alyreader.interactor;
 
 
-import android.util.EventLog;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.zhy.http.okhttp.OkHttpUtils;
 import com.zhy.http.okhttp.callback.StringCallback;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import aly.com.alyreader.bean.MusicBean;
+import aly.com.alyreader.bean.MusicPageInfo;
 import aly.com.alyreader.bean.MusicsListEntity;
 import aly.com.alyreader.bean.ResponseMusicsListentity;
 import aly.com.alyreader.listeners.BaseMultiLoadedListener;
-import aly.com.alyreader.player.MusicPlayService;
 import aly.com.alyreader.utils.UriHelper;
 import okhttp3.Call;
-import okhttp3.Request;
 
 /**
  * Author:  Tau.Chen
@@ -56,7 +52,8 @@ public class MusicsInteracotrImpl implements MusicsInteractor {
     @Override
     public void getMusicListData(String requestTag, String keywords, final int event_tag) {
         Log.d(requestTag, UriHelper.getInstance().getDoubanPlayListUrl(keywords));
-        playDefaultMusic(event_tag);
+        getMusicList(event_tag);
+//        playDefaultMusic(event_tag);
 //        GsonRequest<ResponseMusicsListentity> gsonRequest = new GsonRequest<ResponseMusicsListentity>(
 //                UriHelper.getInstance().getDoubanPlayListUrl(keywords),
 //                null,
@@ -93,54 +90,77 @@ public class MusicsInteracotrImpl implements MusicsInteractor {
                 .addParams("hash","C23D025EE9ECE593ABD96D7B97DB97B4")
                 .headers(headers)
                 .build()
-                .execute(new MyStringCallback(eventtag));
+                .execute(new MusicPageInfoCallBack(eventtag));
 //        Uri uri = Uri.parse("android.resource://aly.com.alyreader/raw/alert.wav");
 //        MusicsListEntity musicsListEntity=new MusicsListEntity();
 //        musicsListEntity.setUrl(uri.toString());
 
     }
+    private void getMusicList(int eventtag)
+    {
+        String url = "http://apis.baidu.com/geekery/music/query";
+        Map<String, String> headers = new HashMap<>();
+        headers.put("apikey", "d7e569060ebb9021e8d8cc654df20505");
+//        Log.d("RecyclerLinearFragment", "getNews_Page:" + page.toString());
+        OkHttpUtils
+                .get()
+                .url(url)
+                .addParams("page","1")
+                .addParams("size","8")
+                .addParams("s"," 十年")
+                .headers(headers)
+                .build()
+                .execute(new MusicPageInfoCallBack(eventtag));
+    }
+    private void initMusicListURL(MusicsListEntity musicsListEntity,int eventtag)
+    {
+
+    }
 
     private Gson gson = new Gson();
-    public class MyStringCallback extends StringCallback {
+    public class MusicPageInfoCallBack extends StringCallback {
         private int eventtag;
 
-        public MyStringCallback(int eventtag) {
+        public MusicPageInfoCallBack(int eventtag) {
             this.eventtag = eventtag;
         }
 
+
         @Override
-        public void onBefore(Request request) {
-            super.onBefore(request);
-            Log.d("MyStringCallback", "onBefore");
-//            setTitle("loading...");
+        public void onError(Call call, Exception e, int id) {
+
         }
 
         @Override
-        public void onAfter() {
-            super.onAfter();
-            Log.d("MyStringCallback", "onAfter");
-//            setTitle("Sample-okHttp");
-        }
-
-        @Override
-        public void onError(Call call, Exception e) {
-            Log.d("MyStringCallback", "onError");
-//            tv.setText("onError:" + e.getMessage());
-        }
-
-        @Override
-        public void onResponse(String response) {
-            Log.d("MyStringCallback", "onResponse");
-            MusicBean musicBean = gson.fromJson(response, MusicBean.class);
-            if (musicBean != null) {
-                MusicsListEntity musicsListEntity = new MusicsListEntity();
-                musicsListEntity.setUrl(musicBean.getData().getUrl());
+        public void onResponse(String response, int id) {
+            MusicPageInfo musicPageInfo = gson.fromJson(response, MusicPageInfo.class);
+            if (musicPageInfo != null) {
+                List<MusicsListEntity> list = musicPageInfo.getData().getData();
                 ResponseMusicsListentity responseMusicsListentity = new ResponseMusicsListentity();
-                List<MusicsListEntity> list = new ArrayList<MusicsListEntity>();
-                list.add(musicsListEntity);
                 responseMusicsListentity.setSong(list);
                 loadedListener.onSuccess(eventtag, responseMusicsListentity);
+
             }
+
+        }
+    }
+    public class MusicsURLCallBack extends StringCallback{
+        int eventtag;
+
+        public MusicsURLCallBack(int eventtag)
+        {
+            this.eventtag = eventtag;
+
+        }
+        @Override
+        public void onError(Call call, Exception e, int id) {
+
+        }
+
+        @Override
+        public void onResponse(String response, int id) {
+            MusicBean musicBean = gson.fromJson(response, MusicBean.class);
+
 
         }
     }

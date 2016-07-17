@@ -18,6 +18,7 @@ package aly.com.alyreader.presenter;
 
 import android.content.Context;
 
+import aly.com.alyreader.bean.MusicPageInfo;
 import aly.com.alyreader.bean.MusicsListEntity;
 import aly.com.alyreader.bean.ResponseMusicsListentity;
 import aly.com.alyreader.common.Constants;

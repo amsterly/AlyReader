@@ -33,9 +33,9 @@
             android:layout_height="0dp"
             android:layout_centerInParent="true"
             android:src="@drawable/disc"
-            app:layout_heightPercent="60%w"
+            app:layout_heightPercent="80%w"
             app:layout_marginPercent="5%w"
-            app:layout_widthPercent="60%w" />
+            app:layout_widthPercent="80%w" />
 
         <ImageView
             android:id="@+id/player_disc_image"
@@ -44,8 +44,8 @@
             android:layout_centerInParent="true"
             android:background="@drawable/disc_base"
             android:scaleType="centerCrop"
-            app:layout_heightPercent="50%w"
-            app:layout_widthPercent="50%w" />
+            app:layout_heightPercent="70%w"
+            app:layout_widthPercent="70%w" />
 
         <ImageView
             android:id="@+id/player_needle"
@@ -55,8 +55,8 @@
             android:layout_alignParentTop="true"
             android:src="@drawable/stick"
             app:layout_heightPercent="50%w"
-            app:layout_marginRightPercent="5%w"
-            app:layout_marginTopPercent="20%w"
+            app:layout_marginRightPercent="2%w"
+            app:layout_marginTopPercent="30%w"
             app:layout_widthPercent="30%w" />
     </com.zhy.android.percent.support.PercentRelativeLayout>
 

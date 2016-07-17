@@ -26,18 +26,16 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.gson.Gson;
+import com.mingle.entity.MenuEntity;
+import com.mingle.sweetpick.BlurEffect;
+import com.mingle.sweetpick.RecyclerViewDelegate;
+import com.mingle.sweetpick.SweetSheet;
 import com.zhy.android.percent.support.PercentRelativeLayout;
-import com.zhy.http.okhttp.OkHttpUtils;
-import com.zhy.http.okhttp.callback.StringCallback;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import aly.com.alyreader.R;
-import aly.com.alyreader.bean.MusicBean;
 import aly.com.alyreader.bean.MusicsListEntity;
 import aly.com.alyreader.bean.ResponseMusicsListentity;
 import aly.com.alyreader.blur.FastBlur;
@@ -52,8 +50,7 @@ import aly.com.alyreader.view.MusicsView;
 import aly.com.alyreader.widgets.PlayerDiscView;
 import butterknife.Bind;
 import butterknife.ButterKnife;
-import okhttp3.Call;
-import okhttp3.Request;
+import butterknife.OnClick;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -105,6 +102,16 @@ public class MusicFragment extends Fragment implements MusicsView {
     @Bind(R.id.musics_player_disc_view)
     PlayerDiscView mPlayerDiscView;
     protected static String TAG_LOG = null;
+    @Bind(R.id.music_player_love_btn)
+    ImageButton musicPlayerLoveBtn;
+    @Bind(R.id.music_player_list_btn)
+    ImageButton musicPlayerListBtn;
+    @Bind(R.id.music_player_mode_btn)
+    ImageButton musicPlayerModeBtn;
+    @Bind(R.id.music_player_share_btn)
+    ImageButton musicPlayerShareBtn;
+    @Bind(R.id.musiccontrolbtn)
+    LinearLayout musiccontrolbtn;
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
@@ -122,7 +129,8 @@ public class MusicFragment extends Fragment implements MusicsView {
     private PlayBundleBroadCast mBundleBroadCast;
     private PlayPositionBroadCast mPositionBroadCast;
     private PlaySecondProgressBroadCast mSecondProgressBroadCast;
-
+    private SweetSheet mSweetSheet;
+    ArrayList<MenuEntity> menuEntities = new ArrayList<>();
     public MusicFragment() {
         // Required empty public constructor
     }
@@ -183,8 +191,9 @@ public class MusicFragment extends Fragment implements MusicsView {
                                                                           }
         );
         initViewsAndEvents();
-
+        initSheet();
     }
+
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
@@ -214,12 +223,13 @@ public class MusicFragment extends Fragment implements MusicsView {
     public void onDetach() {
         super.onDetach();
         mListener = null;
-        if(mMusicsPresenter != null) {
+        if (mMusicsPresenter != null) {
             mMusicsPresenter.onStopPlay();
         }
         mContext.unregisterReceiver(mBundleBroadCast);
         mContext.unregisterReceiver(mPositionBroadCast);
         mContext.unregisterReceiver(mSecondProgressBroadCast);
+        ButterKnife.unbind(this);
     }
 
     protected void initViewsAndEvents() {
@@ -259,6 +269,32 @@ public class MusicFragment extends Fragment implements MusicsView {
         });
         mMusicsPresenter.loadListData(TAG_LOG, mMusicsCollectId, Constants.EVENT_REFRESH_DATA);
     }
+
+    private void initSheet() {
+        // SweetSheet 控件,根据 rl 确认位置
+        mSweetSheet = new SweetSheet(musicsPlayerContainer);
+
+        //设置数据源 (数据源支持设置 menuEntities 数组,也支持从菜单中获取)
+        mSweetSheet.setMenuList(menuEntities);
+        //根据设置不同的 Delegate 来显示不同的风格.
+        mSweetSheet.setDelegate(new RecyclerViewDelegate(true));
+        //根据设置不同Effect 来显示背景效果BlurEffect:模糊效果.DimEffect 变暗效果
+        mSweetSheet.setBackgroundEffect(new BlurEffect(8));
+        //设置点击事件
+        mSweetSheet.setOnMenuItemClickListener(new SweetSheet.OnMenuItemClickListener() {
+            @Override
+            public boolean onItemClick(int position, MenuEntity menuEntity1) {
+                //即时改变当前项的颜色
+                menuEntities.get(position).titleColor = 0xff5823ff;
+                ((RecyclerViewDelegate) mSweetSheet.getDelegate()).notifyDataSetChanged();
+
+                //根据返回值, true 会关闭 SweetSheet ,false 则不会.
+                Toast.makeText(mContext, menuEntity1.title + "  " + position, Toast.LENGTH_SHORT).show();
+                return false;
+            }
+        });
+    }
+
     private void blur(Bitmap bkg, View view) {
         long startMs = System.currentTimeMillis();
         float scaleFactor = 8;
@@ -278,7 +314,7 @@ public class MusicFragment extends Fragment implements MusicsView {
 
         overlay = FastBlur.getInstance().doBlur(overlay, (int) radius, true);
         view.setBackgroundDrawable(new BitmapDrawable(getResources(), overlay));
-        System.out.println(System.currentTimeMillis() - startMs + "ms");
+//        System.out.println(System.currentTimeMillis() - startMs + "ms");
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -301,7 +337,6 @@ public class MusicFragment extends Fragment implements MusicsView {
     }
 
 
-
 //        @Override
 //        public void inProgress(float progress)
 //        {
@@ -310,11 +345,22 @@ public class MusicFragment extends Fragment implements MusicsView {
 //        }
 
 
-
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         ButterKnife.unbind(this);
+    }
+    private void initMusicList(ResponseMusicsListentity data)
+    {
+        for (MusicsListEntity musicsListEntity : data.getSong())
+        {
+            MenuEntity menuEntity1 = new MenuEntity();
+            menuEntity1.iconId = R.drawable.ic_add_white_48dp;
+            menuEntity1.titleColor = 0xff000000;
+            menuEntity1.title = musicsListEntity.getFilename();
+            menuEntities.add(menuEntity1);
+        }
+
     }
 
     @Override
@@ -322,8 +368,9 @@ public class MusicFragment extends Fragment implements MusicsView {
         if (null != data) {
             mPlayListData = data.getSong();
             if (null != mPlayListData && !mPlayListData.isEmpty()) {
+                initMusicList(data);
                 MusicPlayService.refreshMusicList(mPlayListData);
-                mMusicsPresenter.onStartPlay();
+//                mMusicsPresenter.onStartPlay();
             }
         }
     }
@@ -407,9 +454,9 @@ public class MusicFragment extends Fragment implements MusicsView {
 //            mSonger.setText(sb.toString().trim());
 //        }
 //
-//        if (totalDuration > 0) {
-//            mPlayerSeekBar.setMax(totalDuration);
-//        }
+        if (totalDuration > 0) {
+            musicsPlayerSeekbar.setMax(totalDuration);
+        }
 //
 //        String imageUrl = entity.getPicture();
 //        if (!CommonUtils.isEmpty(imageUrl)) {
@@ -444,14 +491,15 @@ public class MusicFragment extends Fragment implements MusicsView {
 //            mBackgroundImage.setImageBitmap(bitmap);
 //        }
 //
-//        String totalTime = CommonUtils.convertTime(totalDuration);
-//        if (null != totalTime && !TextUtils.isEmpty(totalTime)) {
-//            mTotalTime.setText(totalTime);
-//        }
+        String totalTime = CommonUtils.convertTime(totalDuration);
+        if (null != totalTime && !TextUtils.isEmpty(totalTime)) {
+            musicsPlayerTotalTime.setText(totalTime);
+        }
     }
 
     @Override
     public void refreshPlayProgress(int progress) {
+        Log.i(TAG, "refreshPlayProgress: " + progress);
 
         musicsPlayerSeekbar.setProgress(progress);
         String currentTime = CommonUtils.convertTime(progress);
@@ -491,12 +539,32 @@ public class MusicFragment extends Fragment implements MusicsView {
 
     }
 
+    @OnClick({R.id.music_player_love_btn, R.id.music_player_list_btn, R.id.music_player_mode_btn, R.id.music_player_share_btn})
+    public void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.music_player_love_btn:
+                break;
+            case R.id.music_player_list_btn:
+
+                if (mSweetSheet.isShow())
+                    mSweetSheet.dismiss();
+                else mSweetSheet.show();
+
+                break;
+            case R.id.music_player_mode_btn:
+                break;
+            case R.id.music_player_share_btn:
+                break;
+        }
+    }
+
+
     /**
      * This interface must be implemented by activities that contain this
      * fragment to allow an interaction in this fragment to be communicated
      * to the activity and potentially other fragments contained in that
      * activity.
-     * <p>
+     * <p/>
      * See the Android Training lesson <a href=
      * "http://developer.android.com/training/basics/fragments/communicating.html"
      * >Communicating with Other Fragments</a> for more information.
@@ -505,6 +573,7 @@ public class MusicFragment extends Fragment implements MusicsView {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
     }
+
     private class PlayBundleBroadCast extends BroadcastReceiver {
 
         @Override

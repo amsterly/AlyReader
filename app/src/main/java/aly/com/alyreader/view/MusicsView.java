@@ -17,6 +17,7 @@
 package aly.com.alyreader.view;
 
 
+import aly.com.alyreader.bean.MusicPageInfo;
 import aly.com.alyreader.bean.MusicsListEntity;
 import aly.com.alyreader.bean.ResponseMusicsListentity;
 

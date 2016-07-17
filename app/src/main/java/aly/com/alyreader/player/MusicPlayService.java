@@ -31,6 +31,7 @@ import org.greenrobot.eventbus.EventBus;
 
 import java.util.List;
 
+import aly.com.alyreader.bean.MusicPageInfo;
 import aly.com.alyreader.bean.MusicsListEntity;
 import aly.com.alyreader.common.Constants;
 import aly.com.alyreader.eventbus.EventCenter;

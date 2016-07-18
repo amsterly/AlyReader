@@ -35,15 +35,19 @@ import aly.com.alyreader.bean.MusicPageInfo;
 import aly.com.alyreader.bean.MusicsListEntity;
 import aly.com.alyreader.common.Constants;
 import aly.com.alyreader.eventbus.EventCenter;
+import aly.com.alyreader.eventbus.URLEvent;
+import aly.com.alyreader.eventbus.UpdateMusicInfoEvent;
 
 
-public class MusicPlayService extends Service {
+
+public class MusicPlayService extends Service  {
 
     private static final String TAG = "MusicPlayService";
     private static MusicPlayer mPlayer = null;
     private PlayBroadCastReceiver mBroadCastReceiver = null;
     private PhoneCallReceiver mPhoneCallReceiver = null;
     private TelephonyManager mTelephonyManager = null;
+
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -129,8 +133,11 @@ public class MusicPlayService extends Service {
     }
 
     public static void refreshMusicList(List<MusicsListEntity> listData) {
+//        if (null != listData && !listData.isEmpty()) {
+//            mPlayer.refreshMusicList(listData.get(0));
+//        }
         if (null != listData && !listData.isEmpty()) {
-            mPlayer.refreshMusicList(listData.get(0));
+            mPlayer.refreshMusicList(listData);
         }
     }
 

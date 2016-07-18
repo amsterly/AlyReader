@@ -17,6 +17,8 @@
 package aly.com.alyreader.interactor;
 
 
+import android.content.Context;
+import android.content.Intent;
 import android.util.Log;
 
 import com.google.gson.Gson;
@@ -32,6 +34,7 @@ import aly.com.alyreader.bean.MusicPageInfo;
 import aly.com.alyreader.bean.MusicsListEntity;
 import aly.com.alyreader.bean.ResponseMusicsListentity;
 import aly.com.alyreader.listeners.BaseMultiLoadedListener;
+import aly.com.alyreader.player.MusicPlayState;
 import aly.com.alyreader.utils.UriHelper;
 import okhttp3.Call;
 
@@ -78,8 +81,8 @@ public class MusicsInteracotrImpl implements MusicsInteractor {
 //
 //        VolleyHelper.getInstance().getRequestQueue().add(gsonRequest);
     }
-    private void playDefaultMusic(int eventtag)
-    {
+
+    private void playDefaultMusic(int eventtag) {
         String url = "http://apis.baidu.com/geekery/music/playinfo";
         Map<String, String> headers = new HashMap<>();
         headers.put("apikey", "d7e569060ebb9021e8d8cc654df20505");
@@ -87,7 +90,7 @@ public class MusicsInteracotrImpl implements MusicsInteractor {
         OkHttpUtils
                 .get()
                 .url(url)
-                .addParams("hash","C23D025EE9ECE593ABD96D7B97DB97B4")
+                .addParams("hash", "C23D025EE9ECE593ABD96D7B97DB97B4")
                 .headers(headers)
                 .build()
                 .execute(new MusicPageInfoCallBack(eventtag));
@@ -96,8 +99,8 @@ public class MusicsInteracotrImpl implements MusicsInteractor {
 //        musicsListEntity.setUrl(uri.toString());
 
     }
-    private void getMusicList(int eventtag)
-    {
+
+    private void getMusicList(int eventtag) {
         String url = "http://apis.baidu.com/geekery/music/query";
         Map<String, String> headers = new HashMap<>();
         headers.put("apikey", "d7e569060ebb9021e8d8cc654df20505");
@@ -105,19 +108,30 @@ public class MusicsInteracotrImpl implements MusicsInteractor {
         OkHttpUtils
                 .get()
                 .url(url)
-                .addParams("page","1")
-                .addParams("size","8")
-                .addParams("s"," 十年")
+                .addParams("page", "1")
+                .addParams("size", "8")
+                .addParams("s", " 十年")
                 .headers(headers)
                 .build()
                 .execute(new MusicPageInfoCallBack(eventtag));
     }
-    private void initMusicListURL(MusicsListEntity musicsListEntity,int eventtag)
-    {
 
+    public void initMusicListURL(Context context, MusicsListEntity musicsListEntity) {
+        String url = "http://apis.baidu.com/geekery/music/playinfo";
+        Map<String, String> headers = new HashMap<>();
+        headers.put("apikey", "d7e569060ebb9021e8d8cc654df20505");
+//        Log.d("RecyclerLinearFragment", "getNews_Page:" + page.toString());
+        OkHttpUtils
+                .get()
+                .url(url)
+                .addParams("hash", musicsListEntity.getHash())
+                .headers(headers)
+                .build()
+                .execute(new MusicsURLCallBack(context, musicsListEntity));
     }
 
     private Gson gson = new Gson();
+
     public class MusicPageInfoCallBack extends StringCallback {
         private int eventtag;
 
@@ -144,14 +158,17 @@ public class MusicsInteracotrImpl implements MusicsInteractor {
 
         }
     }
-    public class MusicsURLCallBack extends StringCallback{
-        int eventtag;
 
-        public MusicsURLCallBack(int eventtag)
-        {
-            this.eventtag = eventtag;
+    public class MusicsURLCallBack extends StringCallback {
 
+        private Context mContext;
+        private MusicsListEntity musicsListEntity;
+
+        public MusicsURLCallBack(Context context, MusicsListEntity musicsListEntity) {
+            this.mContext = context;
+            this.musicsListEntity = musicsListEntity;
         }
+
         @Override
         public void onError(Call call, Exception e, int id) {
 
@@ -160,8 +177,10 @@ public class MusicsInteracotrImpl implements MusicsInteractor {
         @Override
         public void onResponse(String response, int id) {
             MusicBean musicBean = gson.fromJson(response, MusicBean.class);
-
-
+            if(musicBean==null)
+                return;
+            musicsListEntity.setUrl(musicBean.getData().getUrl());
+            mContext.sendBroadcast(new Intent(MusicPlayState.ACTION_MUSIC_PLAY));
         }
     }
 }

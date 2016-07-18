@@ -96,6 +96,11 @@ public class MusicsPresenterImpl implements MusicsPresenter, BaseMultiLoadedList
         mMusicsView.refreshPlayProgress(progress);
     }
 
+    public void getUrl(MusicsListEntity musicsListEntity)
+    {
+        mMusicsInteractor.initMusicListURL(mContext, musicsListEntity);
+    }
+
     @Override
     public void refreshSecondProgress(int progress) {
         mMusicsView.refreshPlaySecondProgress(progress);

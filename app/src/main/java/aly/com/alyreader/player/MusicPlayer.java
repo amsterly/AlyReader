@@ -26,15 +26,22 @@ import android.media.MediaPlayer.OnErrorListener;
 import android.media.MediaPlayer.OnPreparedListener;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.SparseArray;
 
+
+import org.greenrobot.eventbus.EventBus;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 import aly.com.alyreader.bean.MusicsListEntity;
 import aly.com.alyreader.bean.MusicPageInfo;
 import aly.com.alyreader.common.Constants;
+import aly.com.alyreader.eventbus.URLEvent;
+import aly.com.alyreader.eventbus.UpdateMusicInfoEvent;
 
 public class MusicPlayer implements OnCompletionListener, OnErrorListener, OnBufferingUpdateListener, OnPreparedListener {
 
@@ -42,11 +49,13 @@ public class MusicPlayer implements OnCompletionListener, OnErrorListener, OnBuf
 
     private final static long SLEEP_TIME = 1000;
 
+
     private MediaPlayer mMediaPlayer;
 
     private List<MusicsListEntity> mMusicList;
 
-    private int mCurPlayIndex;
+
+    private int mCurPlayIndex = -1;
 
     private int mPlayState;
 
@@ -59,6 +68,7 @@ public class MusicPlayer implements OnCompletionListener, OnErrorListener, OnBuf
     public MusicPlayer(Context context) {
         initParameter(context);
     }
+
 
     private void initParameter(Context context) {
         mContext = context;
@@ -78,6 +88,7 @@ public class MusicPlayer implements OnCompletionListener, OnErrorListener, OnBuf
 
         mRandom = new Random();
         mRandom.setSeed(System.currentTimeMillis());
+
     }
 
     public void exit() {
@@ -102,8 +113,28 @@ public class MusicPlayer implements OnCompletionListener, OnErrorListener, OnBuf
         }
 
         mPlayState = MusicPlayState.MPS_LIST_FULL;
+//        sendPlayBundle();//更新歌手信息及进度时长
     }
+    public void refreshMusicList(List<MusicsListEntity> entity) {
+        if (entity == null) {
+            return;
+        }
 
+        mMusicList=entity;
+
+        if (mMusicList.size() == 0) {
+            mPlayState = MusicPlayState.MPS_LIST_EMPTY;
+            mCurPlayIndex = -1;
+            return;
+        }
+        else
+        {
+            mCurPlayIndex = 0;
+            EventBus.getDefault().post(new UpdateMusicInfoEvent(entity.get(mCurPlayIndex)));
+        }
+
+        mPlayState = MusicPlayState.MPS_LIST_FULL;
+    }
     public int getMusicListCount() {
         return null == mMusicList || mMusicList.isEmpty() ? 0 : mMusicList.size();
     }
@@ -113,7 +144,7 @@ public class MusicPlayer implements OnCompletionListener, OnErrorListener, OnBuf
     }
 
     public void play() {
-        preparedMusic(0);
+        preparedMusic(mCurPlayIndex);
     }
 
     public void play(int position) {
@@ -243,11 +274,16 @@ public class MusicPlayer implements OnCompletionListener, OnErrorListener, OnBuf
         }
 
         mCurPlayIndex = index;
-
+        String dataSource = mMusicList.get(mCurPlayIndex).getUrl();
+        if(dataSource==null)
+        {
+            EventBus.getDefault().post(new URLEvent(mMusicList.get(mCurPlayIndex)));
+            //现象：原来这里return 发现音乐在点击播放时 会自动跳转到下一首 查源码得知 因为return没有初始化player所以执行onError 后执行onComplete 后执行playnext
+        }
         mMediaPlayer.reset();
         mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
 
-        String dataSource = mMusicList.get(mCurPlayIndex).getUrl();
+
 
         try {
             mMediaPlayer.setDataSource(dataSource);

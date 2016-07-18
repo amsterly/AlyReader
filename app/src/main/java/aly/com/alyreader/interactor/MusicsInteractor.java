@@ -16,6 +16,10 @@
 
 package aly.com.alyreader.interactor;
 
+import android.content.Context;
+
+import aly.com.alyreader.bean.MusicsListEntity;
+
 /**
  * Author:  Tau.Chen
  * Email:   1076559197@qq.com | tauchen1990@gmail.com
@@ -26,4 +30,5 @@ public interface MusicsInteractor {
 
     void getMusicListData(String requestTag, String keywords, int event_tag);
 
+    void initMusicListURL(Context context, MusicsListEntity musicsListEntity);
 }

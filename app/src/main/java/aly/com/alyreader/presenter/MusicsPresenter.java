@@ -49,4 +49,6 @@ public interface MusicsPresenter {
     void refreshProgress(int progress);
 
     void refreshSecondProgress(int progress);
+
+    void getUrl(MusicsListEntity musicsListEntity);
 }

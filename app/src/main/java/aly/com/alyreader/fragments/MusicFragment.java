@@ -32,6 +32,10 @@ import com.mingle.sweetpick.RecyclerViewDelegate;
 import com.mingle.sweetpick.SweetSheet;
 import com.zhy.android.percent.support.PercentRelativeLayout;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,6 +44,8 @@ import aly.com.alyreader.bean.MusicsListEntity;
 import aly.com.alyreader.bean.ResponseMusicsListentity;
 import aly.com.alyreader.blur.FastBlur;
 import aly.com.alyreader.common.Constants;
+import aly.com.alyreader.eventbus.URLEvent;
+import aly.com.alyreader.eventbus.UpdateMusicInfoEvent;
 import aly.com.alyreader.player.MusicPlayService;
 import aly.com.alyreader.player.MusicPlayState;
 import aly.com.alyreader.presenter.MusicsPresenter;
@@ -160,6 +166,7 @@ public class MusicFragment extends Fragment implements MusicsView {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
+
     }
 
     @Override
@@ -230,8 +237,22 @@ public class MusicFragment extends Fragment implements MusicsView {
         mContext.unregisterReceiver(mPositionBroadCast);
         mContext.unregisterReceiver(mSecondProgressBroadCast);
         ButterKnife.unbind(this);
+        EventBus.getDefault().unregister(this);
     }
 
+    @Subscribe(threadMode = ThreadMode.ASYNC)
+    public void onURLEvent(URLEvent urlEvent)
+    {
+        MusicsListEntity musicsListEntity=urlEvent.getMusicsListEntity();
+        mMusicsPresenter.getUrl(musicsListEntity);
+    }
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onUpdateMusicInfoEvent(UpdateMusicInfoEvent updateMusicInfoEvent)
+    {
+        MusicsListEntity musicsListEntity=updateMusicInfoEvent.getMusicsListEntity();
+        musicsPlayerName.setText(musicsListEntity.getSingername());
+        musicsPlayerSongerName.setText(musicsListEntity.getFilename());
+    }
     protected void initViewsAndEvents() {
 //        Bitmap bitmap = ImageBlurManager.doBlurJniArray(BitmapFactory.decodeResource(getResources(),
 //                R.drawable.player_bg),
@@ -328,6 +349,7 @@ public class MusicFragment extends Fragment implements MusicsView {
     public void onAttach(Context context) {
         super.onAttach(context);
         this.mContext = context;
+        EventBus.getDefault().register(this);
 //        if (context instanceof OnFragmentInteractionListener) {
 //            mListener = (OnFragmentInteractionListener) context;
 //        } else {
@@ -370,6 +392,7 @@ public class MusicFragment extends Fragment implements MusicsView {
             if (null != mPlayListData && !mPlayListData.isEmpty()) {
                 initMusicList(data);
                 MusicPlayService.refreshMusicList(mPlayListData);
+
 //                mMusicsPresenter.onStartPlay();
             }
         }
@@ -495,6 +518,8 @@ public class MusicFragment extends Fragment implements MusicsView {
         if (null != totalTime && !TextUtils.isEmpty(totalTime)) {
             musicsPlayerTotalTime.setText(totalTime);
         }
+        musicsPlayerName.setText(entity.getSingername());
+        musicsPlayerSongerName.setText(entity.getFilename());
     }
 
     @Override
@@ -585,7 +610,6 @@ public class MusicFragment extends Fragment implements MusicsView {
                     if (null != extras) {
                         MusicsListEntity entity = extras.getParcelable(Constants.KEY_MUSIC_PARCELABLE_DATA);
                         int totalDuration = extras.getInt(Constants.KEY_MUSIC_TOTAL_DURATION);
-
                         mMusicsPresenter.refreshPageInfo(entity, totalDuration);
                     }
                 }
